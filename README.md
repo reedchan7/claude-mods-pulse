@@ -2,9 +2,8 @@
 
 Pulse is a Claude Code mod that keeps live model metrics in the status line under the input box:
 
-```
-Pulse  TTFT 1.03s · Avg 1.21s  │  94 tok/s · Avg 112  │  Cache Hit 99.8%  │  5H 62% left · Resets 18:40  │  Weekly 76% left · Resets Sat 08:00
-```
+<img width="1341" height="189" alt="image" src="https://github.com/user-attachments/assets/3d6a453e-6585-4960-9b47-f11fc2f20149" />
+
 
 It is built on Claude Code's function-hooks API, which is in early access and may change between releases.
 
