@@ -1,0 +1,11 @@
+{
+  "name": "Pulse",
+  "version": "0.1.0",
+  "description": "Live TTFT, tok/s, prompt-cache hit rate and 5-hour / weekly usage left, in the status line under the prompt.",
+  "author": {
+    "name": "reedchan7"
+  },
+  "types": "./types/index.d.ts",
+  "repository": "https://github.com/reedchan7/claude-mods-pulse",
+  "license": "MIT"
+}

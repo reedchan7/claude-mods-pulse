@@ -1,0 +1,13 @@
+{
+  "name": "claude-mods-pulse",
+  "description": "Pulse: live TTFT, tok/s, cache hit and usage in Claude Code's status line.",
+  "owner": {
+    "name": "reedchan7"
+  },
+  "plugins": [
+    {
+      "name": "Pulse",
+      "source": "./mods/pulse"
+    }
+  ]
+}
