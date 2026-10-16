@@ -1,6 +1,6 @@
 {
   "name": "Pulse",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Live TTFT, tok/s, prompt-cache hit rate and 5-hour / weekly usage left, in the status line under the prompt.",
   "author": {
     "name": "reedchan7"

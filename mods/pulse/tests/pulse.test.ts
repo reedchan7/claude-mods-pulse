@@ -102,6 +102,45 @@ test('the status line spells out every figure', async () => {
   )
 })
 
+test('the compact layout keeps only the latest figures', async () => {
+  const now = new Date(2026, 9, 15, 10, 0).getTime()
+  const m = applyLimits(recordStop(EMPTY, USAGE, 1_500, 640), [
+    { kind: 'five_hour', percentUsed: 34, resetsAt: new Date(2026, 9, 15, 15, 27).toISOString() },
+    { kind: 'seven_day', percentUsed: 92, resetsAt: new Date(2026, 9, 16, 9, 0).toISOString() },
+  ])
+  const gap = '\u2002\u2002│\u2002\u2002'
+  expect(statusLine(m, now, 'compact')).toBe(
+    ['TTFT 640ms', '200 tok/s', 'Cache Hit 90.0%', '5H 66% left', 'Weekly 8% left'].join(gap),
+  )
+})
+
+test('the footer button switches the layout and remembers it', async ($, on) => {
+  const status = watchStatus(on)
+  const stored = new Map<string, unknown>()
+  on('store.get', (_, e) => ({ value: stored.get(e.key) }))
+  on('store.set', (_, e) => {
+    stored.set(e.key, e.value)
+    return { value: undefined }
+  })
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const footer = await $.ui.mount({ plugin: 'Pulse', surface, component: 'SessionMode', props: { modes: [] } })
+    expect((await footer.find({ type: 'Button' }))?.text).toBe('−')
+    await footer.press({ key: 'layout' })
+    expect(status()).not.toMatch(/Avg/)
+    expect((await footer.find({ type: 'Button' }))?.text).toBe('+')
+    expect(stored.get('layout')).toBe('compact')
+    await footer.press({ key: 'layout' })
+    expect(status()).toMatch(/Avg/)
+    expect(stored.get('layout')).toBe('full')
+    await footer.unmount()
+  }
+})
+
+test('the footer keeps the engine mode labels', async $ => {
+  const footer = await $.ui.mount({ plugin: 'Pulse', surface: 'desktop', component: 'SessionMode', props: { modes: ['focus'] } })
+  expect(await footer.find({ type: 'Text', text: /focus/ })).toBeDefined()
+})
+
 test('remaining usage is the complement of what is used', async () => {
   expect(fmtLeft(34)).toBe('66%')
   expect(fmtLeft(104)).toBe('0%')

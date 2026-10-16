@@ -1,7 +1,7 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, TurnUsage } from 'claude-code'
 
-import type { PulseMetrics } from '../types'
+import type { PulseLayout, PulseMetrics } from '../types'
 import { DASH, fmtMs, fmtPct, fmtLeft, fmtRate, fmtResetAt, fmtUsed, sparkline } from './format'
 import {
   applyLimits,
@@ -25,13 +25,18 @@ const LIMITS_MS = 60_000
 const PANE = 'pulse'
 
 // bump the shape when stored metrics must be dropped (a schema change, or figures measured wrong)
+const LAYOUT_KEY = 'layout'
+const layoutAtom = atom({ plugin: 'Pulse', key: 'layout' } as const, 'full' as PulseLayout)
+
 const metrics = atom({ plugin: 'Pulse', key: 'metrics' } as const, EMPTY, { shape: '2' })
 
 let hasReportedSaveError = false
+// mirrors the layout atom so every status write uses it without a read; persisted in $.store
+let layout: PulseLayout = 'full'
 
 const save = ($: EngineInterface, change: (m: PulseMetrics) => PulseMetrics) =>
   update($, metrics, change).then(
-    m => $.ui.status(statusLine(m, Date.now())),
+    m => $.ui.status(statusLine(m, Date.now(), layout)),
     (error: unknown) => {
       if (!hasReportedSaveError) {
         hasReportedSaveError = true
@@ -53,7 +58,9 @@ export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: 'pulse', description: 'Open the Pulse details pane' })
     const result = await next(e)
-    $.ui.status(statusLine(await read($, metrics), Date.now()))
+    layout = (await $.store.get(LAYOUT_KEY)) === 'compact' ? 'compact' : 'full'
+    await update($, layoutAtom, () => layout)
+    $.ui.status(statusLine(await read($, metrics), Date.now(), layout))
     void refreshLimits($)
     $.clock.every(LIMITS_MS, () => void refreshLimits($))
     return result
@@ -131,6 +138,23 @@ export const register: Register = on => {
   on('command.run', { command: 'pulse' }, async $ => {
     await $.ui.open({ id: PANE, title: 'Pulse', focus: true, closeOnEscape: true })
     return { text: 'Pulse opened.' }
+  })
+
+  on('ui.render', { component: 'SessionMode' }, async ($, e) => {
+    const { Box, Button, Text } = $.ui.resolve(e)
+    const target: PulseLayout = (await read($, layoutAtom)) === 'full' ? 'compact' : 'full'
+    const toggle = async () => {
+      layout = target
+      await update($, layoutAtom, () => target)
+      $.ui.status(statusLine(await read($, metrics), Date.now(), target))
+      await $.store.set(LAYOUT_KEY, target)
+    }
+    return (
+      <Box flexDirection="row">
+        {e.props.modes.length > 0 && <Text dimColor>{e.props.modes.join(' & ')} </Text>}
+        <Button key="layout" plain dimColor label={target === 'compact' ? '−' : '+'} onPress={() => void toggle()} />
+      </Box>
+    )
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {

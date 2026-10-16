@@ -3,6 +3,8 @@ export type PulseLimit = {
   resetsAt: number | null
 }
 
+export type PulseLayout = 'full' | 'compact'
+
 export type PulseMetrics = {
   ttftLast: number | null
   ttftSum: number
@@ -24,6 +26,6 @@ export type PulseMetrics = {
 
 declare module 'claude-code' {
   interface PluginState {
-    Pulse: { metrics: Shaped<PulseMetrics> }
+    Pulse: { metrics: Shaped<PulseMetrics>; layout: PulseLayout }
   }
 }

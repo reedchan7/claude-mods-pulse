@@ -18,6 +18,14 @@ It is built on Claude Code's function-hooks API, which is in early access and ma
 
 Run `/pulse` for a details pane: a card that follows the light/dark theme in the desktop app, plus the raw figures (requests measured, tokens, cache tokens, reset times).
 
+## Compact layout
+
+`−` in the prompt footer switches the line to the latest figures only, so it fits a narrow window; `+` switches back to averages and reset times. The choice is remembered across sessions.
+
+```
+TTFT 1.03s  │  94 tok/s  │  Cache Hit 99.8%  │  5H 62% left  │  Weekly 76% left
+```
+
 ## How it measures
 
 - Only main-thread requests count; subagent requests are left out. A request that fails before answering adds nothing.
